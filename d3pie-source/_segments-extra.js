@@ -1,5 +1,4 @@
-
-
+// --------- segments-extra.js -----------
 var testObj = {
     //@satish: this function allow user to selecting multiple segment or single.
     pieObject:d3pie,
@@ -171,6 +170,7 @@ var testObj = {
         }
     }
 };
+
 function getTruncatedString(str,charLen)
 {
     var tStr = str;

@@ -32,7 +32,7 @@ module.exports = function(grunt) {
 			_labels:          fs.readFileSync("d3pie-source/_labels.js", 'utf8'),
 			_math:            fs.readFileSync("d3pie-source/_math.js", 'utf8'),
 			_segments:        fs.readFileSync("d3pie-source/_segments.js", 'utf8'),
-			_segmentsExtras:  fs.readFileSync("d3pie-source/_segements-extra.js", 'utf8'),
+			_segmentsExtra:   fs.readFileSync("d3pie-source/_segments-extra.js", 'utf8'),
 			_text:            fs.readFileSync("d3pie-source/_text.js", 'utf8'),
 			_tooltips:        fs.readFileSync("d3pie-source/_tooltips.js", 'utf8'),
 			_validate:        fs.readFileSync("d3pie-source/_validate.js", 'utf8')
