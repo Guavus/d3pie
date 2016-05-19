@@ -108,9 +108,9 @@ var labels = {
 			var value      = d3.select(this).selectAll("." + pie.cssPrefix + "segmentValue-" + section);
 
 			labels["dimensions-" + section].push({
-				mainLabel:  (mainLabel.node() !== null) ? mainLabel.node().getBBox() : null,
-				percentage: (percentage.node() !== null) ? percentage.node().getBBox() : null,
-				value:      (value.node() !== null) ? value.node().getBBox() : null
+				mainLabel:  (mainLabel.node() !== null) ? mainLabel.node().getBoundingClientRect() : null,
+				percentage: (percentage.node() !== null) ? percentage.node().getBoundingClientRect() : null,
+				value:      (value.node() !== null) ? value.node().getBoundingClientRect() : null
 			});
 		});
 
@@ -441,7 +441,10 @@ var labels = {
 		labels.checkConflict(pie, nextIndex, direction, size);
 	},
 
-	// does a little math to shift a label into a new position based on the last properly placed one
+	/**
+	 * adjustLabelPos .
+	 * does a little math to shift a label into a new position based on the last properly placed one
+	 */
 	adjustLabelPos: function(pie, nextIndex, lastCorrectlyPositionedLabel, info) {
 		var xDiff, yDiff, newXPos, newYPos;
 		newYPos = lastCorrectlyPositionedLabel.y + info.heightChange;
@@ -471,7 +474,7 @@ var labels = {
     if (!labelGroupNode) {
       return;
     }
-    var labelGroupDims = labelGroupNode.getBBox();
+		var labelGroupDims = labelGroupNode.getBoundingClientRect();
 		var angle = segments.getSegmentAngle(i, pie.options.data.content, pie.totalSize, { midpoint: true });
 
 		var originalX = pie.pieCenter.x;

@@ -1,4 +1,5 @@
 .idea*
+d3pie.iml
 node_modules/*
 build/*
 website/core/.DS_Store

@@ -34,7 +34,7 @@ var math = {
 		// for really teeny pies, h may be < 0. Adjust it back
 		h = (h < 0) ? 0 : h;
 
-		var outerRadius = ((w < h) ? w : h) / 3;
+		var outerRadius = ((w < h) ? w : h) / 2-15;
 		var innerRadius, percent;
 
 		// if the user specified something, use that instead
@@ -71,8 +71,17 @@ var math = {
 		}
 
 		pie.innerRadius = innerRadius;
-		pie.outerRadius = outerRadius;
+		//set outer radius offset
+		pie.outerRadiusOffset  = size.pieOuterRadiusOffset;
+		pie.outerRadius = outerRadius-pie.outerRadiusOffset;
 	},
+
+	/**
+	 * getTotalPieSize .
+	 * @param data
+	 * @return totalSize
+	 * Get total value for pie
+	 */
 
 	getTotalPieSize: function(data) {
 		var totalSize = 0;
@@ -81,6 +90,13 @@ var math = {
 		}
 		return totalSize;
 	},
+
+	/**
+	 * sortPieData .
+	 * @param pieCenter
+	 * @return data
+	 * Sort pie data based on sort order
+	 */
 
 	sortPieData: function(pie) {
 		var data                 = pie.options.data.content;
@@ -109,9 +125,12 @@ var math = {
 
 		return data;
 	},
-
 	
-
+	/**
+	 * getPieTranslateCenter .
+	 * @param pieCenter
+	 * @return coordinates
+	 */
 	// var pieCenter = math.getPieCenter();
 	getPieTranslateCenter: function(pieCenter) {
 		return "translate(" + pieCenter.x + "," + pieCenter.y + ")";

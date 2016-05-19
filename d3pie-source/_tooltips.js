@@ -2,7 +2,13 @@
 var tt = {
 	addTooltips: function(pie) {
 
-		// group the label groups (label, percentage, value) into a single element for simpler positioning
+        var tooltip = d3.select(pie)
+            .append('div')                               //@Satish: added div over the center lable for showing tooltip.
+            .attr('class', 'tooltip');
+        tooltip.append('div')
+            .attr('class', 'label');
+
+        // group the label groups (label, percentage, value) into a single element for simpler positioning
 		var tooltips = pie.svg.insert("g")
 			.attr("class", pie.cssPrefix + "tooltips");
 
@@ -57,6 +63,13 @@ var tt = {
 			});
 	},
 
+    /**
+     * showTooltip .
+     * @param pie
+     * @param index
+     * @return coordinates
+     *
+     */
   showTooltip: function(pie, index) {
 
 	  var fadeInSpeed = pie.options.tooltips.styles.fadeInSpeed;
@@ -73,15 +86,25 @@ var tt = {
     tt.moveTooltip(pie);
   },
 
-  moveTooltip: function(pie) {
-    d3.selectAll("#" + pie.cssPrefix + "tooltip" + tt.currentTooltip)
-      .attr("transform", function(d) {
-        var mouseCoords = d3.mouse(this.parentNode);
-        var x = mouseCoords[0] + pie.options.tooltips.styles.padding + 2;
-        var y = mouseCoords[1] - (2 * pie.options.tooltips.styles.padding) - 2;
-        return "translate(" + x + "," + y + ")";
-      });
-  },
+    /**
+     * moveTooltip .
+     * @param pie
+     * @return coordinates
+     *
+     */
+    moveTooltip: function(pie) {
+        d3.selectAll("#" + pie.cssPrefix + "tooltip" + tt.currentTooltip)
+            .attr("transform", function(d) {
+                var textLength = d.label.length*10;
+                var mouseCoords = d3.mouse(this.parentNode);
+                var x = d3.event.pageX + 10;
+                var y = d3.event.pageY - (7 * pie.options.tooltips.styles.padding);
+                var xDiff = (x+textLength)-this.parentNode.parentNode.parentNode.scrollWidth;
+                console.log("Mouse X:"+x);
+                x -= xDiff;
+                return "translate(" + x + "," + y + ")";
+            });
+    },
 
   hideTooltip: function(pie, index) {
     d3.select("#" + pie.cssPrefix + "tooltip" + index)
@@ -102,9 +125,9 @@ var tt = {
   replacePlaceholders: function(pie, str, index, replacements) {
 
     // if the user has defined a placeholderParser function, call it before doing the replacements
-    if (helpers.isFunction(pie.options.tooltips.placeholderParser)) {
-      pie.options.tooltips.placeholderParser(index, replacements);
-    }
+      if (helpers.isFunction(pie.options.tooltips.placeholderParser)) {
+          return pie.options.tooltips.placeholderParser(index, replacements);
+      }
 
     var replacer = function()  {
       return function(match) {

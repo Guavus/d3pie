@@ -3,11 +3,16 @@ var text = {
 	offscreenCoord: -10000,
 
 	addTitle: function(pie) {
+		
+		var textWidth = pie.options.size.pieInnerRadius - 2;
 		var title = pie.svg.selectAll("." + pie.cssPrefix + "title")
 			.data([pie.options.header.title])
 			.enter()
 			.append("text")
 			.text(function(d) { return d.text; })
+			.each(function(d) {
+				d.width = this.getBoundingClientRect().width;
+			})
 			.attr({
         id: pie.cssPrefix + "title",
         class: pie.cssPrefix + "title",
@@ -23,9 +28,65 @@ var text = {
 				}
 				return location;
 			})
+			.text(function(d) {  if(this.getBoundingClientRect().width > textWidth){return getTruncatedString(d.text,10);} else {return d.text;} }) //added by @Bipin
 			.attr("fill", function(d) { return d.color; })
 			.style("font-size", function(d) { return d.fontSize + "px"; })
-			.style("font-family", function(d) { return d.font; });
+			.style("font-family", function(d) { return d.font; })
+			.style("cursor","pointer")
+			.style("cursor","hand")
+			// @satish: added tooltip on center label.
+			.on('mouseover', function(d) {
+				var tip = d3.select('#'+pie.element.id+'_tooltip')[0];
+				var t1 = tip[0];
+				var txtLen = d.text.length;
+				t1.innerHTML = d.text;
+				t1.style.display= 'block';
+				if(txtLen>pie.options.tooltips.styles.wordWrapLength)
+				{
+					t1.style.width= "150px";
+					t1.style['word-wrap'] =  "break-word";
+				}
+				else
+				{
+					t1.style['word-wrap'] =  "normal";
+					t1.style.width= null;
+				}
+			})
+			.on('mousemove', function(d) {
+				var tip = d3.select('#'+pie.element.id+'_tooltip')[0];
+				var t1 = tip[0];
+				var mouseCoords = d3.mouse(pie.element.parentNode);
+				var x, y;
+				if (pie.options.tooltips.customPositioning) {
+					x = mouseCoords[0] - t1.clientWidth;
+					y = mouseCoords[1] + 25;
+				}
+				else {
+					x = d3.event.pageX + 10;
+					y = d3.event.pageY - (7 * pie.options.tooltips.styles.padding);
+				}
+				t1.style.left= x + 'px';
+				t1.style.top= y + 'px';
+			})
+			.on('mouseout', function(d) {
+				var tip = d3.select('#'+pie.element.id+'_tooltip')[0];
+				var t1 = tip[0];
+				var txt = this.__data__;
+				t1.innerHTML = txt.label;
+				t1.style.display= 'none';
+			})
+			.on('click', function(d){
+				var arr1 = d3.selectAll("." + pie.cssPrefix + "expanded")[0];
+
+				for(var i1 = 0; i1 < arr1.length; i1++)
+				{
+					//segments.closeSegment(pie,arr1[i1]);
+					segments.closeSegmentNew(pie,arr1[i1]);
+				}
+
+				segments.onSegmentEventNew(pie, pie.options.callbacks.onCloseSegmentNew, undefined, false);
+				segments.onSegmentEventNew(pie, pie.options.callbacks.onCloseAllSegments, undefined, false);
+			});
 	},
 
 	positionTitle: function(pie) {
@@ -71,6 +132,7 @@ var text = {
 			.data([pie.options.header.subtitle])
 			.enter()
 			.append("text")
+			.attr("cursor","default")
 			.text(function(d) { return d.text; })
 			.attr("x", text.offscreenCoord)
 			.attr("y", text.offscreenCoord)
@@ -87,7 +149,21 @@ var text = {
 			})
 			.attr("fill", function(d) { return d.color; })
 			.style("font-size", function(d) { return d.fontSize + "px"; })
-			.style("font-family", function(d) { return d.font; });
+			.style("font-family", function(d) { return d.font; })
+			.style("cursor","pointer")
+			.style("cursor","hand")
+			.on('click', function(d){
+				var arr1 = d3.selectAll("." + pie.cssPrefix + "expanded")[0];
+
+				for(var i1 = 0; i1 < arr1.length; i1++)
+				{
+					//segments.closeSegment(pie,arr1[i1]);
+					segments.closeSegmentNew(pie,arr1[i1]);
+				}
+
+				segments.onSegmentEventNew(pie, pie.options.callbacks.onCloseSegmentNew, undefined, false);
+				segments.onSegmentEventNew(pie, pie.options.callbacks.onCloseAllSegments, undefined, false);
+			});
 	},
 
 	positionSubtitle: function(pie) {

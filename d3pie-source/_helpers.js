@@ -9,8 +9,8 @@ var helpers = {
 		var backgroundColor = pie.options.misc.colors.background;
 
 		var svg = d3.select(element).append("svg:svg")
-			.attr("width", canvasWidth)
-			.attr("height", canvasHeight);
+			.attr('viewBox', '0 0 ' + canvasWidth + ' ' + canvasHeight)
+			.attr('preserveAspectRatio', 'xMinYMin meet');
 
 		if (backgroundColor !== "transparent") {
 			svg.style("background-color", function() { return backgroundColor; });
@@ -90,7 +90,7 @@ var helpers = {
 		var el = document.getElementById(id);
 		var w = 0, h = 0;
 		if (el) {
-			var dimensions = el.getBBox();
+			var dimensions = el.getBoundingClientRect();
 			w = dimensions.width;
 			h = dimensions.height;
 		} else {
@@ -166,11 +166,20 @@ var helpers = {
 		// TODO this needs a ton of error handling
 
 		var finalColors = [];
-		for (var i=0; i<data.length; i++) {
-			if (data[i].hasOwnProperty("color")) {
+		for (var i=0; i<data.length; i++)
+		{
+			if (data[i].hasOwnProperty("color"))
+			{
 				finalColors.push(data[i].color);
-			} else {
-				finalColors.push(colors[i]);
+			}
+			else
+			{
+				if(data[i].hasOwnProperty("label") && data[i].label==="Others")
+				{
+					finalColors.push(colors[colors.length-1]);
+				}
+				else
+					finalColors.push(colors[i]);
 			}
 		}
 

@@ -42,47 +42,75 @@
 
 	// --------------------------------------------------------------------------------------------
 
-	// our constructor
+	var isMultipleSelectionAllowed = null;
+
+	/**
+	 * PieChart Component.
+	 * @constructor
+	 * @param {string} element - The id of the div on which PieChart will be created.
+	 * @param {object} options - The configuration required to the Pie Chart
+	 * @return d3pie
+	 */
 	var d3pie = function(element, options) {
 
 		// element can be an ID or DOM element
-		this.element = element;
-		if (typeof element === "string") {
-			var el = element.replace(/^#/, ""); // replace any jQuery-like ID hash char
-			this.element = document.getElementById(el);
+		if(options !== undefined && options.data.content && options.data.content.length > 0)
+		{
+			this.element = element;
+
+			this.defaultHeaderVal = options.header.title.text;
+			isMultipleSelectionAllowed = options.data.allowMultipleSelection;
+
+			if (typeof element === "string") {
+				var el = element.replace(/^#/, ""); // replace any jQuery-like ID hash char
+				this.element = document.getElementById(el);
+			}
+			if(this.element.children.length>0)
+			{
+				this.element.innerHTML = '';
+			}
+			var allowMultipleSelection;
+
+			var opts = {};
+			extend(true, opts, defaultSettings, options);
+			this.options = opts;
+
+			// if the user specified a custom CSS element prefix (ID, class), use it
+			if (this.options.misc.cssPrefix !== null) {
+				this.cssPrefix = this.options.misc.cssPrefix;
+			} else {
+				this.cssPrefix = "p" + _uniqueIDCounter + "_";
+				_uniqueIDCounter++;
+			}
+
+
+			// now run some validation on the user-defined info
+			if (!validate.initialCheck(this)) {
+				return;
+			}
+
+			// add a data-role to the DOM node to let anyone know that it contains a d3pie instance, and the d3pie version
+			d3.select(this.element)
+				.attr(_scriptName, _version);
+
+			// things that are done once
+			this.options.data.content = math.sortPieData(this);
+			if (this.options.data.smallSegmentGrouping.enabled) {
+				this.options.data.content = helpers.applySmallSegmentGrouping(this.options.data.content, this.options.data.smallSegmentGrouping);
+			}
+			this.options.colors = helpers.initSegmentColors(this);
+			this.totalSize      = math.getTotalPieSize(this.options.data.content);
+			this.allowMultipleSelection = this.options.data.allowMultipleSelection; //@Satish: added allowMultipleSelection property for making it single or multiple section.
+			this.selectedSegments = []; //Satish: added array for storing selected items.
+			_init.call(this);
 		}
 
-		var opts = {};
-		extend(true, opts, defaultSettings, options);
-		this.options = opts;
-
-		// if the user specified a custom CSS element prefix (ID, class), use it
-		if (this.options.misc.cssPrefix !== null) {
-			this.cssPrefix = this.options.misc.cssPrefix;
-		} else {
-			this.cssPrefix = "p" + _uniqueIDCounter + "_";
-			_uniqueIDCounter++;
-		}
-
-
-		// now run some validation on the user-defined info
-		if (!validate.initialCheck(this)) {
-			return;
-		}
-
-		// add a data-role to the DOM node to let anyone know that it contains a d3pie instance, and the d3pie version
-		d3.select(this.element).attr(_scriptName, _version);
-
-		// things that are done once
-		this.options.data.content = math.sortPieData(this);
-		if (this.options.data.smallSegmentGrouping.enabled) {
-			this.options.data.content = helpers.applySmallSegmentGrouping(this.options.data.content, this.options.data.smallSegmentGrouping);
-		}
-		this.options.colors = helpers.initSegmentColors(this);
-		this.totalSize      = math.getTotalPieSize(this.options.data.content);
-
-		_init.call(this);
 	};
+
+	/**
+	 * recreate PieChart woth new data .
+	 * @return {Array} Array containing series data .
+	 */
 
 	d3pie.prototype.recreate = function() {
 		// now run some validation on the user-defined info
@@ -99,10 +127,19 @@
 		_init.call(this);
 	};
 
+	/**
+	 * redraw .
+	 * Called to reset the inner HTML and call init again
+	 */
 	d3pie.prototype.redraw = function() {
 		this.element.innerHTML = "";
 		_init.call(this);
 	};
+
+	/**
+	 * destroy .
+	 * Called to destroy the pie instance
+	 */
 
 	d3pie.prototype.destroy = function() {
 		this.element.innerHTML = ""; // clear out the SVG
@@ -132,6 +169,53 @@
 		}
 	};
 
+	/**
+	 * segmentClick .
+	 * @param event
+	 * @param _pieInstance
+	 * expose this Item click function for using it from the outside. like for legend item click and pie item interaction.
+	 */
+	// @Satish: expose this Item click function for using it from the outside. like for legend item click and pie item interaction.
+	d3pie.prototype.segmentClick = function (event, _pieInstance)
+	{
+		testObj.pieSegmentClickHandler(event,event,_pieInstance);
+	};
+
+	d3pie.prototype.segmentHtmlClick = function (event, elem, _pieInstance)
+	{
+		testObj.pieSegmentClickHandler(event, elem, _pieInstance);
+	};
+
+	//NOTE: this method is based on dom - dont return the right segments in a middle of an event after click
+	/**
+	 * getAllOpenSegments .
+	 * @returns
+	 * expose this function for getting all selected Pie Items. this can be access from the outside.
+	 */
+
+	d3pie.prototype.getAllOpenSegments = function() {
+		this.selectedSegments = d3.selectAll("." + this.cssPrefix + "expanded");
+		return this.selectedSegments;
+	};
+
+	/**
+	 * getLiveAllOpenSegments .
+	 * @returns
+	 * getting all selected Pie Items By id even in a middle of an event after click - NOT based on DOM
+	 */
+	d3pie.prototype.getLiveAllOpenSegmentsById = function(id_) {
+		if(!testObj.currentSegmentsOpen[id_])
+		{
+			return [];
+		}
+		return testObj.currentSegmentsOpen[id_];
+	};
+
+	/**
+	 * openSegment .
+	 * @param index
+	 * open the segment based on index
+	 */
 	d3pie.prototype.openSegment = function(index) {
 		index = parseInt(index, 10);
 		if (index < 0 || index > this.options.data.content.length-1) {
@@ -140,22 +224,68 @@
 		segments.openSegment(this, d3.select("#" + this.cssPrefix + "segment" + index).node());
 	};
 
-	d3pie.prototype.closeSegment = function() {
+	d3pie.prototype.openPieSegments = function(index) {
+		index = parseInt(index, 10);
+		if (index < 0 || index > this.options.data.content.length-1) {
+			return;
+		}
+
+		var segment = d3.select("#" + this.cssPrefix + "segment" + index);
+
+		segments.openPieSegments(this, segment.node());
+
+		var isExpanded = segment.attr("class") === this.cssPrefix + "expanded";
+
+		segments.onSegmentEventPieWedgeCalled(this, this.options.callbacks.onClickSegmentAfterPieWedgeCalled,index, segment, isExpanded);
+	};
+
+
+	/**
+	 * closeSegment .
+	 * @param index
+	 * close segment based
+	 */
+	d3pie.prototype.closeSegment = function(index, manualTrigger) {
 		var segment = this.currentlyOpenSegment;
-		if (segment) {
-			segments.closeSegment(this, segment);
+		var index1 = parseInt(index, 10);
+		segment = d3.select("#" + this.cssPrefix + "segment" + index1);
+		var isExpanded = segment.attr("class") === this.cssPrefix + "expanded";
+
+		if (segment && isExpanded) {
+			segments.closeSegment(this, segment.node(), manualTrigger);
 		}
 	};
 
-	// this let's the user dynamically update aspects of the pie chart without causing a complete redraw. It
-	// intelligently re-renders only the part of the pie that the user specifies. Some things cause a repaint, others
-	// just redraw the single element
+	/**
+	 * closeAllSegments .
+	 * closes all the expanded segments
+	 */
+	d3pie.prototype.closeAllSegments = function()
+	{
+		var arr1 = d3.selectAll("." + this.cssPrefix + "expanded")[0];
+		var i1 = 0;
+		for(i1 = 0; i1 < arr1.length; i1++)
+		{
+			var seg = arr1[i1];
+			segments.closeSegmentNew(this,seg);
+		}
+	};
+
+	/**
+	 * updateProp .
+	 * this let's the user dynamically update aspects of the pie chart without causing a complete redraw. It
+	 * intelligently re-renders only the part of the pie that the user specifies. Some things cause a repaint, others
+	 * just redraw the single element
+	 */
+
 	d3pie.prototype.updateProp = function(propKey, value) {
 		switch (propKey) {
 			case "header.title.text":
 				var oldVal = helpers.processObj(this.options, propKey);
 				helpers.processObj(this.options, propKey, value);
-				d3.select("#" + this.cssPrefix + "title").html(value);
+				var titletext = document.getElementById(this.cssPrefix + "title");  // @Satish
+				titletext.textContent=getTruncatedString(value,10);  // @Satish
+				//d3.select("#" + this.cssPrefix + "title").html(value);  // @Satish // this line not works with safari and IE.
 				if ((oldVal === "" && value !== "") || (oldVal !== "" && value === "")) {
 					this.redraw();
 				}
@@ -164,7 +294,11 @@
 			case "header.subtitle.text":
 				var oldValue = helpers.processObj(this.options, propKey);
 				helpers.processObj(this.options, propKey, value);
-				d3.select("#" + this.cssPrefix + "subtitle").html(value);
+				//d3.select("#" + this.cssPrefix + "subtitle").html(value);  // @Satish // this line not works with safari and IE.
+				var subTitletext = document.getElementById(this.cssPrefix + "subtitle");  // @Satish
+				if(subTitletext) {
+					subTitletext.textContent = this.options.measureLabelFunction ? this.options.measureLabelFunction("value",value) : value; //@Arpit
+				}
 				if ((oldValue === "" && value !== "") || (oldValue !== "" && value === "")) {
 					this.redraw();
 				}
@@ -174,11 +308,17 @@
 			case "callbacks.onMouseoverSegment":
 			case "callbacks.onMouseoutSegment":
 			case "callbacks.onClickSegment":
+			case "callbacks.onClickSegmentAfter":
+			case "onClickSegmentAfterPieWedgeCalled":
+			case "callbacks.onCloseSegment":
+			case "callbacks.onCloseSegmentNew":
+			case "callbacks.onCloseAllSegments":
 			case "effects.pullOutSegmentOnClick.effect":
 			case "effects.pullOutSegmentOnClick.speed":
 			case "effects.pullOutSegmentOnClick.size":
 			case "effects.highlightSegmentOnMouseover":
 			case "effects.highlightLuminosity":
+			case "data.allowMultipleSelection":
 				helpers.processObj(this.options, propKey, value);
 				break;
 
@@ -192,10 +332,16 @@
 		}
 	};
 
-
 	// ------------------------------------------------------------------------------------------------
 
-
+	/**
+	 * _init .
+	 * Set up initial svg space
+	 * store info about the main text components as part of the d3pie object instance
+	 * adds header
+	 * adds sub title
+	 * adds footer if required
+	 */
 	var _init = function() {
 
 		// prep-work
@@ -230,7 +376,7 @@
 		if (this.textComponents.subtitle.exists) {
 			text.addSubtitle(this);
 		}
-		text.addFooter(this);
+		//text.addFooter(this);//@satish no need to add footer as we dont required it.
 
 		// the footer never moves. Put it in place now
 		var self = this;
@@ -309,14 +455,31 @@
 			}
 
 			labels.positionLabelGroups(self, "inner");
+
 			labels.fadeInLabelsAndLines(self);
 
-      // add and position the tooltips
-      if (self.options.tooltips.enabled) {
-        tt.addTooltips(self);
-      }
+			/**
+			 * add pie tooltip area
+			 * position the tooltips
+			 */
 
+			if (self.options.tooltips.enabled) {
+
+				var tooltip = d3.select(self.element)
+					.append('div')                               //@Satish: added div over the center lable for showing tooltip.
+					.attr('class', 'wm-d3pie-tooltip ' + self.element.id+'_'+'tooltip')
+					.attr('id', self.element.id+'_'+'tooltip');
+				tooltip.append('div')
+					.attr('class', 'label');
+				// tt.addTooltips(self); // @satish: default tooltip was having overlapping issue. so I am not using it.
+			}
+
+			/**
+			 * addSegmentEventHandlers .
+			 * attached mousedown handler
+			 */
       segments.addSegmentEventHandlers(self);
+
 		});
 	};
 

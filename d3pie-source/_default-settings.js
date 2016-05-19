@@ -7,34 +7,40 @@ var defaultSettings = {
 	header: {
 		title: {
 			text:     "",
-			color:    "#333333",
-			fontSize: 18,
-			font:     "arial"
+			color:    "#25373e",
+			fontSize: 24,
+			font:     "AllerLight"
 		},
 		subtitle: {
 			text:     "",
-			color:    "#666666",
-			fontSize: 14,
-			font:     "arial"
+			color:    "#25373e",
+			fontSize: 16,
+			font:     "AllerLight"
 		},
-		location: "top-center",
-		titleSubtitlePadding: 8
+		location: "pie-center",
+		titleSubtitlePadding: 15,
+		customTitleUpdate: {
+			enabled: false,
+			titleKey: ''
+		}
 	},
 	footer: {
 		text: 	  "",
 		color:    "#666666",
 		fontSize: 14,
-		font:     "arial",
+		font:     "AllerLight",
 		location: "left"
 	},
 	size: {
-		canvasHeight: 500,
-		canvasWidth: 500,
-		pieInnerRadius: "0%",
+		canvasHeight: 350,
+		canvasWidth: 350,
+		pieInnerRadius: "98",
+		pieOuterRadiusOffset:15,
 		pieOuterRadius: null
 	},
 	data: {
 		sortOrder: "none",
+		allowMultipleSelection:null,
 		ignoreSmallSegments: {
 			enabled: false,
 			valueType: "percentage",
@@ -52,31 +58,31 @@ var defaultSettings = {
 	labels: {
 		outer: {
 			format: "label",
-			hideWhenLessThanPercentage: null,
-			pieDistance: 30
+			hideWhenLessThanPercentage: 101,
+			pieDistance: 0
 		},
 		inner: {
 			format: "percentage",
-			hideWhenLessThanPercentage: null
+			hideWhenLessThanPercentage: 101
 		},
 		mainLabel: {
 			color: "#333333",
-			font: "arial",
+			font: "AllerLight",
 			fontSize: 10
 		},
 		percentage: {
 			color: "#dddddd",
-			font: "arial",
+			font: "AllerLight",
 			fontSize: 10,
 			decimalPlaces: 0
 		},
 		value: {
 			color: "#cccc44",
-			font: "arial",
+			font: "AllerLight",
 			fontSize: 10
 		},
 		lines: {
-			enabled: true,
+			enabled: false,
 			style: "curved",
 			color: "segment"
 		},
@@ -84,7 +90,7 @@ var defaultSettings = {
 			enabled: false,
 			truncateLength: 30
 		},
-    formatter: null
+		formatter: null
 	},
 	effects: {
 		load: {
@@ -100,31 +106,22 @@ var defaultSettings = {
 		highlightLuminosity: -0.2
 	},
 	tooltips: {
-		enabled: false,
+		customPositioning: false,
+		enabled: true,
+		renderer: null,
 		type: "placeholder", // caption|placeholder
-    string: "",
-    placeholderParser: null,
+		string: "{label}: {value}",
+		placeholderParser: null,
 		styles: {
-      fadeInSpeed: 250,
-			backgroundColor: "#000000",
-      backgroundOpacity: 0.5,
-			color: "#efefef",
-      borderRadius: 2,
-      font: "arial",
-      fontSize: 10,
-      padding: 4
+			wordWrapLength: 30,
+			fadeInSpeed: 250,
+			padding: 8
 		}
 	},
 	misc: {
 		colors: {
 			background: null,
-			segments: [
-				"#2484c1", "#65a620", "#7b6888", "#a05d56", "#961a1a", "#d8d23a", "#e98125", "#d0743c", "#635222", "#6ada6a",
-				"#0c6197", "#7d9058", "#207f33", "#44b9b0", "#bca44a", "#e4a14b", "#a3acb2", "#8cc3e9", "#69a6f9", "#5b388f",
-				"#546e91", "#8bde95", "#d2ab58", "#273c71", "#98bf6e", "#4daa4b", "#98abc5", "#cc1010", "#31383b", "#006391",
-				"#c2643f", "#b0a474", "#a5a39c", "#a9c2bc", "#22af8c", "#7fcecf", "#987ac6", "#3d3b87", "#b77b1c", "#c9c2b6",
-				"#807ece", "#8db27c", "#be66a2", "#9ed3c6", "#00644b", "#005064", "#77979f", "#77e079", "#9c73ab", "#1f79a7"
-			],
+			segments:["#c0e31f", "#95d600", "#55e06a", "#00956d", "#35bdb2", "#0090a6", "#4ea3e2", "#96c0e6", "#1557bf", "#3d27a1","#999999"],
 			segmentStroke: "#ffffff"
 		},
 		gradient: {
@@ -148,6 +145,9 @@ var defaultSettings = {
 		onload: null,
 		onMouseoverSegment: null,
 		onMouseoutSegment: null,
+		onCloseSegment:null,
+		onCloseSegmentNew:null,
+		onCloseAllSegments: null,
 		onClickSegment: null
 	}
 };
